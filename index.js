@@ -16,7 +16,7 @@ app.use(cors());
 
 //xml2js
 app.get('/xml2js', (req, res) => {
-	var URL = decodeURIComponent(req.query.URL);
+	const URL = decodeURIComponent(req.query.URL);
 	try {
 		fetch(URL, settings)
 			.then(res => res.text())
@@ -56,7 +56,7 @@ app.get('/info', (req, res) => {
 });
 app.get('/', (req, res) => {
 	try {
-		res.json({ endpoints: ['/xml2js', '/info'] });
+		res.json({ endpoints: ['/xml2js?URL=', '/info','/mdn?q=','/mdn-search?q='] });
 	} catch (err) {
 		res.status(400).send({
 			message: 'Bad Request'
@@ -64,17 +64,34 @@ app.get('/', (req, res) => {
 		console.log(err);
 	}
 });
+
 app.get('/mdn', (req, res) => {
 	try {
-		fetch('https://developer.mozilla.org/en-US/docs/Glossary/CSS', settings)
+		let list = [];
+		const q = decodeURIComponent(req.query.q);
+		fetch(`https://developer.mozilla.org/en-US/search?q=${q}`, settings)
 			.then(res => res.text())
 			.then(text => {
 				const $ = cheerio.load(text);
-				const output = $('p')
-					.first()
-					.text();
-				res.json({ summary: output });
-				const list = [];
+
+				$('.result-url a').each(function(i, elem) {
+					list[i] = 'https://developer.mozilla.org' + $(this).attr('href');
+				});
+				if (!list || list.length == 0) {
+					res.status(400).send({
+						message: 'Bad Request'
+					});
+				} else {
+					fetch(list[0], settings)
+						.then(res => res.text())
+						.then(text => {
+							const $ = cheerio.load(text);
+							const output = $('p')
+								.first()
+								.text();
+							res.json({ summary: output });
+						});
+				}
 			});
 	} catch (err) {
 		res.status(400).send({
@@ -84,4 +101,32 @@ app.get('/mdn', (req, res) => {
 	}
 });
 
+app.get('/mdn-search', (req, res) => {
+	try {
+		let list = [];
+
+		const q = decodeURIComponent(req.query.q);
+		fetch(`https://developer.mozilla.org/en-US/search?q=${q}`, settings)
+			.then(res => res.text())
+			.then(text => {
+				const $ = cheerio.load(text);
+				$('.result-url a').each(function(i, elem) {
+					list[i] = 'https://developer.mozilla.org' + $(this).attr('href');
+					
+				});
+				if (!list || list.length == 0) {
+					res.status(400).send({
+						message: 'Bad Request'
+					});
+				} else {
+				  res.json(list);
+				}
+			});
+	} catch (err) {
+		res.status(400).send({
+			message: 'Bad Request'
+		});
+		console.log(err);
+	}
+});
 app.listen(4000, () => {});
