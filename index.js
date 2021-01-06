@@ -77,7 +77,7 @@ app.get('/mdn', (req, res) => {
 				$('.result-url a').each(function(i, elem) {
 					list[i] = 'https://developer.mozilla.org' + $(this).attr('href');
 				});
-				if (!list || list.length == 0) {
+				if (!list || list.length == 0 || !q || q===undefined) {
 					res.status(400).send({
 						message: 'Bad Request'
 					});
@@ -89,7 +89,7 @@ app.get('/mdn', (req, res) => {
 							const output = $('p')
 								.first()
 								.text();
-							res.json({ summary: output });
+							res.json({ summary: output,link:list[0] });
 						});
 				}
 			});
@@ -114,7 +114,7 @@ app.get('/mdn-search', (req, res) => {
 					list[i] = 'https://developer.mozilla.org' + $(this).attr('href');
 					
 				});
-				if (!list || list.length == 0) {
+				if (!list || list.length == 0 || !q ||q===undefined) {
 					res.status(400).send({
 						message: 'Bad Request'
 					});
