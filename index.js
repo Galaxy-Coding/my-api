@@ -192,33 +192,8 @@ app.get('/mdn-search', (req, res) => {
 		console.log(err);
 	}
 });
-app.get('/genius', (req, res) => {
-	try {
-		let list = [];
 
-		const q = decodeURIComponent(req.query.q);
-		fetch(`https://genius.com/search?q=${q}`, settings)
-			.then(res => res.text())
-			.then(text => {
-				const $ = cheerio.load(text);
-				$('.result-url a').each(function(i, elem) {
-					list[i] = 'https://developer.mozilla.org' + $(this).attr('href');
-				});
-				if (!list || list.length == 0 || !q || q === undefined) {
-					res.status(400).send({
-						message: 'Bad Request'
-					});
-				} else {
-					res.json(list);
-				}
-			});
-	} catch (err) {
-		res.status(400).send({
-			message: 'Bad Request'
-		});
-		console.log(err);
-	}
-}); /*
+/*
 app.get('/genius', (req, res) => {
 	try {
 		const q = decodeURIComponent(req.query.q);
